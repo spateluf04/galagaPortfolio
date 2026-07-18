@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Samir Patel — Computer Science student at the University of Florida. Projects, skills, and contact info." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Samir Patel — CS Student</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <canvas id="starfield" aria-hidden="true"></canvas>
+
+    <header id="hud" class="hud">
+      <div class="hud__item hud__item--score">
+        <span class="hud__label">1UP</span>
+        <span id="hud-score" class="hud__value">000000</span>
+      </div>
+      <div class="hud__item hud__item--hiscore">
+        <span class="hud__label">HI-SCORE</span>
+        <span class="hud__value">999999</span>
+      </div>
+      <div class="hud__item hud__item--stage">
+        <span class="hud__label">STAGE</span>
+        <span id="hud-stage" class="hud__value">1/4</span>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="hero" class="hero" aria-label="Introduction">
+        <h1 class="hero__name">Samir Patel</h1>
+        <p id="hero-tagline" class="hero__tagline"></p>
+
+        <nav class="formation" aria-label="Primary">
+          <ul id="formation-list" class="formation__list"></ul>
+        </nav>
+
+        <div class="hero__ship" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="48" height="48" shape-rendering="crispEdges">
+            <rect class="ship-hull" x="7" y="1" width="2" height="2" />
+            <rect class="ship-hull" x="6" y="3" width="4" height="2" />
+            <rect class="ship-hull" x="5" y="5" width="6" height="2" />
+            <rect class="ship-hull" x="3" y="7" width="10" height="2" />
+            <rect class="ship-hull" x="1" y="9" width="14" height="2" />
+            <rect class="ship-thruster" x="4" y="11" width="2" height="2" />
+            <rect class="ship-thruster" x="10" y="11" width="2" height="2" />
+          </svg>
+        </div>
+
+        <button id="insert-coin" class="insert-coin" type="button" hidden>
+          INSERT COIN — PRESS SPACE TO PLAY
+        </button>
+      </section>
+
+      <section id="about" class="about" aria-labelledby="about-heading">
+        <h2 id="about-heading" class="section-heading">Player Profile</h2>
+        <div class="about__grid">
+          <div class="about__photo" role="img" aria-label="Photo placeholder for Samir Patel">
+            <span>PHOTO</span>
+          </div>
+          <div class="about__text">
+            <p id="about-bio" class="about__bio"></p>
+            <ul id="quick-facts" class="quick-facts"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="projects" aria-labelledby="projects-heading">
+        <h2 id="projects-heading" class="section-heading">Stage Select</h2>
+        <ul id="projects-grid" class="projects__grid"></ul>
+      </section>
+
+      <section id="skills" class="skills" aria-labelledby="skills-heading">
+        <h2 id="skills-heading" class="section-heading">Power-Ups</h2>
+        <div id="skills-grid" class="skills__grid"></div>
+      </section>
+
+      <section id="contact" class="contact" aria-labelledby="contact-heading">
+        <h2 id="contact-heading" class="section-heading">Game Over? Continue &rarr;</h2>
+        <div class="contact__actions" id="contact-actions"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="site-footer__credit">&copy; 2026 SAMIR PATEL — NO NAMCO ASSETS WERE HARMED</p>
+    </footer>
+
+    <div id="game-root" hidden></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
