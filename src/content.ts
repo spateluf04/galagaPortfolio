@@ -13,6 +13,7 @@ export const profile = {
     { label: "SCHOOL", value: "University of Florida" },
     { label: "FOCUS", value: "Full-stack + systems" },
     { label: "BUILDING", value: "RoomScan, The Pause Protocol" },
+    { label: "THIS SITE", value: "Hand-built, vanilla TS + Canvas — no game libraries, including the mini-game (try PRESS SPACE up top)" },
   ],
   links: {
     github: "https://github.com/spateluf04",

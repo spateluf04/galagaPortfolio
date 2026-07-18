@@ -115,6 +115,7 @@ function initInsertCoin() {
   const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
   btn.hidden = !(hasTouch || hasFinePointer);
+  btn.textContent = hasFinePointer ? "PRESS SPACE TO PLAY" : "TAP TO PLAY";
 
   async function launch() {
     const gameRoot = $("#game-root");
