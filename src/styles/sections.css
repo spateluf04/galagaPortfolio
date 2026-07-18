@@ -1,3 +1,30 @@
+/* ---------- Load-in animation ---------- */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ---------- Hero ---------- */
 .hero {
   min-height: calc(100vh - var(--hud-height));
@@ -15,17 +42,20 @@
   font-size: clamp(20px, 6vw, 44px);
   color: var(--accent-amber);
   text-wrap: balance;
+  animation-delay: 0ms;
 }
 
 .hero__tagline {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: clamp(14px, 3vw, 18px);
+  animation-delay: 90ms;
 }
 
 .formation {
   width: 100%;
   max-width: 480px;
+  animation-delay: 180ms;
 }
 
 .formation__list {
@@ -60,6 +90,10 @@
   transform: translateY(-2px);
 }
 
+.hero__ship {
+  animation-delay: 270ms;
+}
+
 .ship-hull {
   fill: var(--accent-teal);
 }
@@ -69,6 +103,7 @@
 }
 
 .insert-coin {
+  animation-delay: 360ms;
   border: 2px solid var(--accent-teal);
   color: var(--accent-teal);
   padding: var(--space-2) var(--space-3);
