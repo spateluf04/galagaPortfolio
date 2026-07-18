@@ -24,8 +24,8 @@ export function initStarfield(canvas: HTMLCanvasElement): void {
 
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    width = window.innerWidth;
-    height = window.innerHeight;
+    width = document.documentElement.clientWidth;
+    height = document.documentElement.clientHeight;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;

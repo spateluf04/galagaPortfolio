@@ -4,7 +4,7 @@ import "./styles/sections.css";
 import { profile, projects, skillGroups, nav } from "./content";
 import { initStarfield } from "./starfield";
 import { initHud } from "./hud";
-import { enemyIconSvg } from "./pixel-icons";
+import { enemyIconSvg, skillIconSvg } from "./pixel-icons";
 import { initReveal } from "./reveal";
 
 function $<T extends HTMLElement>(selector: string): T {
@@ -71,42 +71,95 @@ function renderProjects() {
     .join("");
 }
 
+const SCROLL_GROUPS = new Set(["Languages", "Frameworks", "Tools"]);
+
 function renderSkills() {
   const grid = $("#skills-grid");
   grid.innerHTML = skillGroups
-    .map(
-      (group) => `
-        <div class="skill-group bracketed">
-          <h3 class="skill-group__label">${group.label}</h3>
+    .map((group) => {
+      const items = SCROLL_GROUPS.has(group.label)
+        ? `
+          <ul class="skill-scroll" tabindex="0" aria-label="${group.label} skills, scroll horizontally for more">
+            ${group.items
+              .map(
+                (item) => `
+                  <li class="skill-scroll__item">
+                    ${skillIconSvg(item, "#5dcaa5")}
+                    <span class="skill-scroll__label">${item}</span>
+                  </li>
+                `,
+              )
+              .join("")}
+          </ul>
+        `
+        : `
           <ul class="skill-group__items">
             ${group.items.map((item) => `<li>${item}</li>`).join("")}
           </ul>
+        `;
+      return `
+        <div class="skill-group bracketed">
+          <h3 class="skill-group__label">${group.label}</h3>
+          ${items}
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
 function renderContact() {
   const actions = $("#contact-actions");
-  const emailUser = profile.links.email.split("@")[0];
-  const emailDomain = profile.links.email.split("@")[1];
 
   const linkedinLink = profile.links.linkedin
     ? `<a class="contact__action bracketed" href="${profile.links.linkedin}" target="_blank" rel="noreferrer">LINKEDIN</a>`
     : "";
 
   actions.innerHTML = `
-    <button class="contact__action bracketed" id="reveal-email" type="button">EMAIL ME</button>
     <a class="contact__action bracketed" href="${profile.links.github}" target="_blank" rel="noreferrer">GITHUB</a>
     ${linkedinLink}
     <a class="contact__action bracketed" href="${profile.links.resume}" download>DOWNLOAD RESUME</a>
   `;
+}
 
-  const revealBtn = $<HTMLButtonElement>("#reveal-email");
-  revealBtn.addEventListener("click", () => {
-    window.location.href = `mailto:${emailUser}@${emailDomain}`;
-    revealBtn.textContent = `${emailUser}@${emailDomain}`;
+function initContactForm() {
+  const form = $<HTMLFormElement>("#contact-form");
+  const status = $("#contact-status");
+  const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  const originalLabel = submitBtn.textContent ?? "SEND TRANSMISSION";
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+
+    const nameInput = $<HTMLInputElement>("#contact-name");
+    const firstName = nameInput.value.trim().split(" ")[0] || "there";
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "SENDING...";
+    status.classList.remove("contact-form__status--error");
+    status.textContent = "";
+
+    try {
+      const formData = Array.from(new FormData(form).entries()) as [string, string][];
+      const res = await fetch(window.location.pathname, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(formData).toString(),
+      });
+
+      if (res.ok) {
+        status.textContent = `Thanks, ${firstName} — message received. I'll get back to you soon.`;
+        form.reset();
+      } else {
+        throw new Error(`Form endpoint returned ${res.status}`);
+      }
+    } catch {
+      status.classList.add("contact-form__status--error");
+      status.textContent = `Couldn't send that automatically — email me directly at ${profile.links.email} instead.`;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
+    }
   });
 }
 
@@ -146,6 +199,7 @@ function init() {
   renderProjects();
   renderSkills();
   renderContact();
+  initContactForm();
   initInsertCoin();
 
   initStarfield($<HTMLCanvasElement>("#starfield"));

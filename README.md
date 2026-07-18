@@ -28,6 +28,12 @@ render from it automatically. Things you'll likely want to fill in:
   renders a disabled-looking link until filled in.
 - `profile.taglines[]` — three alternatives are included; `activeTagline`
   picks which one renders.
+- `skillGroups` — Languages/Frameworks/Tools render as a horizontally
+  scrollable strip with a pixel-art icon per item; Coursework stays a
+  plain list. Adding a new Languages/Frameworks/Tools item needs a
+  matching entry in `SKILL_GRIDS` in
+  [`src/pixel-icons.ts`](src/pixel-icons.ts) (keyed by the exact item
+  string) or it falls back to a generic square glyph.
 
 ## Deployment
 
@@ -41,13 +47,36 @@ repo-name-specific config is needed — `vite.config.ts` uses a relative
 To deploy to Vercel instead: import the repo, framework preset "Vite",
 no other configuration required.
 
+**Contact form requires Netlify hosting to actually deliver messages.**
+The form in the Contact section uses [Netlify
+Forms](https://docs.netlify.com/manage/forms/setup/) (`data-netlify="true"`
+on the `<form>`) — Netlify's build bot detects that attribute and
+auto-provisions a submission endpoint + dashboard, no backend code or
+API keys needed. This **only works when the site is actually deployed
+on Netlify**; it does nothing on GitHub Pages, Vercel, or localhost.
+If you deploy elsewhere, the form still degrades gracefully: the JS
+tries to POST to itself, gets a non-2xx response, and falls back to
+showing your email address instead of silently failing.
+
+To make the form actually work: deploy to Netlify instead of (or in
+addition to) GitHub Pages — import the repo at app.netlify.com, build
+command `npm run build`, publish directory `dist`. Once deployed,
+enable email notifications for the "contact" form under **Site
+settings → Forms → Form notifications** so submissions land in your
+inbox.
+
 ## Notable decisions
 
 - **Tagline**: defaulted to "CS student · I build software"; two
   alternates are in `content.ts` if you'd rather use one of those.
-- **Email**: rendered behind a click (`EMAIL ME` button assembles the
-  `mailto:` link and reveals the address in JS) rather than in plain
-  HTML, to reduce scraping.
+- **Contact**: a real form (name/email/message) instead of a `mailto:`
+  button, using Netlify Forms — see Deployment above for the hosting
+  requirement and graceful-degradation behavior. Includes a visually-hidden
+  honeypot field (`_gotcha`) for basic spam filtering.
+- **Skill icons**: hand-drawn pixel-grid glyphs (`src/pixel-icons.ts`),
+  not official brand logos — keeps every asset on the site originally
+  authored, consistent with the "no reproduced assets" rule applied to
+  the arcade theme itself.
 - **Fonts**: "Press Start 2P" (headings/HUD/buttons, never below 12px)
   and "JetBrains Mono" (body, 16px+) loaded from Google Fonts with
   `preconnect` + `preload` + `font-display: swap`.
@@ -95,3 +124,13 @@ from the Google Fonts stylesheet request under simulated throttling.
 Preconnect + preload are already in place; self-hosting the fonts
 would close the remaining gap but wasn't necessary to hit the 95+
 target (currently 97).
+
+**Gotcha for future CSS edits**: any element inside `.skills__grid`
+that itself scrolls horizontally (like `.skill-scroll`) needs
+`min-width: 0` on its CSS Grid *item* ancestor (`.skill-group`). Grid
+(and flex) items default to `min-width: auto`, which lets a scrollable
+child's full unscrolled content width propagate up through the grid
+and force the whole page to overflow horizontally — this was caught
+and fixed during development by testing against real Playwright device
+presets (`devices['iPhone 12']`), which reproduce this correctly;
+a hand-rolled `{ width: 360, isMobile: true }` context did not.
