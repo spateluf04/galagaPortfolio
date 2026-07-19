@@ -21,6 +21,8 @@ export function initStarfield(canvas: HTMLCanvasElement): void {
   let height = 0;
   let rafId = 0;
   let paused = document.hidden;
+  let lastScrollY = window.scrollY;
+  let warp = 0;
 
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -56,15 +58,32 @@ export function initStarfield(canvas: HTMLCanvasElement): void {
 
   function tick() {
     if (paused) return;
+
+    // Scroll-velocity "warp": fast scrolling stretches stars into streaks
+    // and speeds their drift, relaxing back to points ~300ms after rest.
+    const scrollDelta = window.scrollY - lastScrollY;
+    lastScrollY = window.scrollY;
+    warp += (scrollDelta - warp) * 0.25;
+
     ctx!.clearRect(0, 0, width, height);
     for (const star of stars) {
-      star.y += star.speed;
+      const drift = star.speed + warp * star.speed * 0.6;
+      star.y += drift;
       if (star.y > height) {
         star.y = 0;
         star.x = Math.random() * width;
+      } else if (star.y < 0) {
+        star.y = height;
+        star.x = Math.random() * width;
       }
       ctx!.fillStyle = star.color;
-      ctx!.fillRect(star.x, star.y, star.size, star.size);
+      const streak = Math.min(Math.abs(warp) * star.speed * 2, 40);
+      if (streak > 1.5) {
+        const streakY = drift >= 0 ? star.y - streak : star.y;
+        ctx!.fillRect(star.x, streakY, star.size, star.size + streak);
+      } else {
+        ctx!.fillRect(star.x, star.y, star.size, star.size);
+      }
     }
     rafId = requestAnimationFrame(tick);
   }

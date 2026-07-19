@@ -30,6 +30,8 @@ export function initHud(scoreEl: HTMLElement, stageEl: HTMLElement): void {
     (el): el is HTMLElement => el !== null,
   );
 
+  let lastIndex = -1;
+
   const observer = new IntersectionObserver(
     (entries) => {
       const visible = entries
@@ -39,6 +41,10 @@ export function initHud(scoreEl: HTMLElement, stageEl: HTMLElement): void {
       const index = sections.indexOf(visible.target as HTMLElement);
       if (index !== -1) {
         stageEl.textContent = `${index + 1}/${sections.length}`;
+        if (index !== lastIndex) {
+          lastIndex = index;
+          window.dispatchEvent(new CustomEvent("stagechange", { detail: { index } }));
+        }
       }
     },
     { rootMargin: "-40% 0px -40% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },

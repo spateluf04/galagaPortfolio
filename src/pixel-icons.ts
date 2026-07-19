@@ -80,3 +80,17 @@ const FALLBACK_GRID: string[] = ["........", "..XXXX..", ".X....X.", ".X....X.",
 export function skillIconSvg(name: string, colorVar: string): string {
   return gridToSvg(SKILL_GRIDS[name] ?? FALLBACK_GRID, colorVar, 24);
 }
+
+// Same silhouette as the static hero ship (index.html), but with the
+// thruster rects tagged so flight.ts can drive their scale as a CSS var.
+export function shipSvg(size: number): string {
+  return `<svg viewBox="0 0 16 16" width="${size}" height="${size}" shape-rendering="crispEdges" aria-hidden="true">
+    <rect class="ship-hull" x="7" y="1" width="2" height="2" />
+    <rect class="ship-hull" x="6" y="3" width="4" height="2" />
+    <rect class="ship-hull" x="5" y="5" width="6" height="2" />
+    <rect class="ship-hull" x="3" y="7" width="10" height="2" />
+    <rect class="ship-hull" x="1" y="9" width="14" height="2" />
+    <rect class="ship-thruster flight-ship__flame" x="4" y="11" width="2" height="2" />
+    <rect class="ship-thruster flight-ship__flame" x="10" y="11" width="2" height="2" />
+  </svg>`;
+}

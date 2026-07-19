@@ -1,0 +1,38 @@
+.flight-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.flight-ship-group {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.flight-ship {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  will-change: transform;
+}
+
+.flight-ship--ghost {
+  filter: saturate(0.7);
+}
+
+.flight-ship__flame {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(var(--flame-scale, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-layer {
+    display: none;
+  }
+}
