@@ -13,9 +13,12 @@
 }
 
 .game-canvas {
-  width: min(90vw, 320px);
+  /* Bounded by viewport width AND height (via vh, at the 2:3 ratio) so the
+     bigger board never overflows a short viewport — height stays derived
+     from width so the aspect ratio is never distorted. */
+  width: min(90vw, 480px, 55vh);
   height: auto;
-  aspect-ratio: 320 / 480;
+  aspect-ratio: 480 / 720;
   border: 2px solid var(--accent-teal);
   touch-action: none;
 }

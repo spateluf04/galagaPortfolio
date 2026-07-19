@@ -1,23 +1,24 @@
 import "../styles/game.css";
 
-const WIDTH = 320;
-const HEIGHT = 480;
-const PLAYER_SPEED = 220; // px/sec
-const BULLET_SPEED = 340;
+const WIDTH = 480;
+const HEIGHT = 720;
+const PLAYER_SPEED = 330; // px/sec
+const BULLET_SPEED = 510;
 const FIRE_COOLDOWN = 0.25;
 const RAPID_FIRE_COOLDOWN = 0.12;
 const SPREAD_ANGLE = 0.26; // radians, half-angle of the 3-way fan
 const PLAYER_INVULN_TIME = 1.5;
 const BUFF_DURATION = 8;
 const POWERUP_DROP_CHANCE = 0.18;
-const POWERUP_SPEED = 60;
-const MAX_ENEMY_BULLETS = 6;
-const ENEMY_BULLET_BASE_SPEED = 150;
+const POWERUP_SPEED = 90;
+const MAX_ENEMY_BULLETS = 10;
+const ENEMY_BULLET_BASE_SPEED = 225;
 const WAVE_CLEAR_PAUSE = 1.6;
-const PLAYER_CELL = 2;
-const ENEMY_CELL = 3;
+const PLAYER_CELL = 3;
+const ENEMY_CELL = 4;
+const STORAGE_KEY = "galaga-portfolio:game-progress";
 
-type EnemyType = "drone" | "striker" | "elite";
+type EnemyType = "drone" | "striker" | "elite" | "boss";
 type PowerKind = "rapid" | "spread" | "shield";
 type Phase = "playing" | "wave-clear" | "over";
 
@@ -53,6 +54,49 @@ function randRange(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
+// Saved between visits (and across closing/reopening the game window) so a
+// run's wave/lives checkpoint survives — cleared only on game over.
+interface SavedProgress {
+  waveIndex: number;
+  lives: number;
+}
+
+function loadProgress(): SavedProgress | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SavedProgress>;
+    if (
+      typeof parsed.waveIndex === "number" &&
+      typeof parsed.lives === "number" &&
+      parsed.waveIndex >= 0 &&
+      parsed.lives > 0 &&
+      parsed.lives <= 3
+    ) {
+      return { waveIndex: parsed.waveIndex, lives: parsed.lives };
+    }
+  } catch {
+    // localStorage unavailable (e.g. private browsing) — start fresh.
+  }
+  return null;
+}
+
+function saveProgress(waveIndex: number, lives: number): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ waveIndex, lives }));
+  } catch {
+    // ignore — persistence is a nice-to-have, not required to play
+  }
+}
+
+function clearProgress(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 // Original pixel-grid sprites, hand-drawn for this game specifically —
 // not a reproduction of any existing game's ship/enemy designs.
 const SHIP_GRID = [
@@ -71,6 +115,8 @@ const SHIP_GRID = [
   "..X..TT..TT..X..",
   ".....TT..TT.....",
 ];
+const PLAYER_W = SHIP_GRID[0].length * PLAYER_CELL;
+const PLAYER_H = SHIP_GRID.length * PLAYER_CELL;
 
 const ENEMY_GRIDS: Record<EnemyType, string[]> = {
   drone: ["..XXXX..", ".XXXXXX.", "XX.XX.XX", "XXXXXXXX", ".XX..XX.", "X......X"],
@@ -84,15 +130,27 @@ const ENEMY_GRIDS: Record<EnemyType, string[]> = {
     ".X.XX.X.",
     "X.X..X.X",
   ],
+  // Tanky formation leader — only appears from wave 7 onward.
+  boss: [
+    "XXXXXXXX",
+    "X.XXXX.X",
+    "XXXXXXXX",
+    ".XXXXXX.",
+    "XXXXXXXX",
+    "X.XXXX.X",
+    "XXXXXXXX",
+    ".X.XX.X.",
+  ],
 };
 
 const ENEMY_COLORS: Record<EnemyType, string> = {
   drone: "#ed93b1",
   striker: "#5dcaa5",
   elite: "#fac775",
+  boss: "#f1efe8",
 };
-const ENEMY_HP: Record<EnemyType, number> = { drone: 1, striker: 1, elite: 2 };
-const ENEMY_POINTS: Record<EnemyType, number> = { drone: 50, striker: 80, elite: 150 };
+const ENEMY_HP: Record<EnemyType, number> = { drone: 1, striker: 1, elite: 2, boss: 3 };
+const ENEMY_POINTS: Record<EnemyType, number> = { drone: 50, striker: 80, elite: 150, boss: 250 };
 const ENEMY_DIMS: Record<EnemyType, { w: number; h: number }> = {
   drone: { w: ENEMY_GRIDS.drone[0].length * ENEMY_CELL, h: ENEMY_GRIDS.drone.length * ENEMY_CELL },
   striker: {
@@ -100,6 +158,7 @@ const ENEMY_DIMS: Record<EnemyType, { w: number; h: number }> = {
     h: ENEMY_GRIDS.striker.length * ENEMY_CELL,
   },
   elite: { w: ENEMY_GRIDS.elite[0].length * ENEMY_CELL, h: ENEMY_GRIDS.elite.length * ENEMY_CELL },
+  boss: { w: ENEMY_GRIDS.boss[0].length * ENEMY_CELL, h: ENEMY_GRIDS.boss.length * ENEMY_CELL },
 };
 
 const POWERUP_COLORS: Record<PowerKind, string> = {
@@ -109,6 +168,7 @@ const POWERUP_COLORS: Record<PowerKind, string> = {
 };
 const POWERUP_LABELS: Record<PowerKind, string> = { rapid: "R", spread: "S", shield: "O" };
 const POWERUP_KINDS: PowerKind[] = ["rapid", "spread", "shield"];
+const POWERUP_SIZE = 16;
 
 function drawGrid(
   ctx: CanvasRenderingContext2D,
@@ -133,17 +193,21 @@ interface WaveConfig {
   speedMul: number;
   fireInterval: number;
   eliteChance: number;
+  bossChance: number;
   bulletSpeed: number;
 }
 
+// Every knob here ramps every single wave (n = waveIndex) so difficulty
+// climbs continuously, not just when the enemy grid grows a row/column.
 function waveConfig(n: number): WaveConfig {
   return {
-    cols: Math.min(4 + Math.floor(n / 2), 7),
-    rows: Math.min(3 + Math.floor(n / 3), 5),
-    speedMul: 1 + n * 0.1,
-    fireInterval: Math.max(2200 - n * 180, 650),
-    eliteChance: Math.min(0.15 + n * 0.05, 0.5),
-    bulletSpeed: ENEMY_BULLET_BASE_SPEED + n * 8,
+    cols: Math.min(4 + Math.floor(n / 2), 10),
+    rows: Math.min(3 + Math.floor(n / 2), 7),
+    speedMul: 1 + n * 0.12,
+    fireInterval: Math.max(2200 - n * 220, 500),
+    eliteChance: Math.min(0.15 + n * 0.06, 0.65),
+    bossChance: n >= 6 ? Math.min(0.05 + (n - 6) * 0.03, 0.3) : 0,
+    bulletSpeed: ENEMY_BULLET_BASE_SPEED + n * 10,
   };
 }
 
@@ -181,7 +245,13 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
 
   const ctx = canvas.getContext("2d")!;
 
-  let player: Rect = { x: WIDTH / 2 - 16, y: HEIGHT - 54, w: 32, h: 28 };
+  const saved = loadProgress();
+
+  function freshPlayer(): Rect {
+    return { x: WIDTH / 2 - PLAYER_W / 2, y: HEIGHT - PLAYER_H - 26, w: PLAYER_W, h: PLAYER_H };
+  }
+
+  let player: Rect = freshPlayer();
   let moveDir = 0; // -1, 0, 1 from keyboard
   let dragX: number | null = null;
   let firing = false;
@@ -193,33 +263,34 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
   let enemies: Enemy[] = [];
   let powerUps: PowerUp[] = [];
   let formationT = 0;
-  let waveIndex = 0;
-  let lives = 3;
+  let waveIndex = saved?.waveIndex ?? 0;
+  let lives = saved?.lives ?? 3;
   let phase: Phase = "playing";
-  let currentWave = waveConfig(0);
+  let currentWave = waveConfig(waveIndex);
   const buffs: Record<PowerKind, number> = { rapid: 0, spread: 0, shield: 0 };
 
   function resetPlayer() {
-    player = { x: WIDTH / 2 - 16, y: HEIGHT - 54, w: 32, h: 28 };
+    player = freshPlayer();
   }
 
   function spawnWave() {
     currentWave = waveConfig(waveIndex);
-    const { cols, rows, eliteChance } = currentWave;
-    const slotW = 34;
-    const slotH = 38;
+    const { cols, rows, eliteChance, bossChance } = currentWave;
+    const slotW = 44;
+    const slotH = 46;
     const marginX = (WIDTH - cols * slotW) / 2;
     enemies = [];
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         let type: EnemyType;
         if (row === rows - 1) type = "drone";
+        else if (row === 0 && bossChance > 0 && Math.random() < bossChance) type = "boss";
         else if (row === 0 && Math.random() < eliteChance) type = "elite";
         else type = "striker";
 
         const dims = ENEMY_DIMS[type];
         const x = marginX + col * slotW + (slotW - dims.w) / 2;
-        const y = 36 + row * slotH;
+        const y = 40 + row * slotH;
 
         enemies.push({
           x,
@@ -234,22 +305,24 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
         });
       }
     }
+    // A clean slate every wave: no carried-over bullets or power-ups/buffs.
+    bullets = [];
     enemyBullets = [];
+    powerUps = [];
+    buffs.rapid = 0;
+    buffs.spread = 0;
+    buffs.shield = 0;
   }
 
   function resetGame() {
     waveIndex = 0;
     lives = 3;
-    bullets = [];
-    powerUps = [];
-    buffs.rapid = 0;
-    buffs.spread = 0;
-    buffs.shield = 0;
     invulnTimer = 0;
     fireCooldownTimer = 0;
     phase = "playing";
     resetPlayer();
     spawnWave();
+    clearProgress();
   }
 
   spawnWave();
@@ -309,6 +382,7 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
   closeBtn.addEventListener("click", close);
 
   function close() {
+    if (phase !== "over") saveProgress(waveIndex, lives);
     document.removeEventListener("keydown", onKeyDown);
     document.removeEventListener("keyup", onKeyUp);
     canvas.removeEventListener("touchstart", onTouchStart);
@@ -340,13 +414,24 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
 
   function spawnPowerUp(from: Enemy) {
     const kind = POWERUP_KINDS[Math.floor(Math.random() * POWERUP_KINDS.length)];
-    powerUps.push({ x: from.x + from.w / 2 - 6, y: from.y, w: 12, h: 12, kind });
+    powerUps.push({
+      x: from.x + from.w / 2 - POWERUP_SIZE / 2,
+      y: from.y,
+      w: POWERUP_SIZE,
+      h: POWERUP_SIZE,
+      kind,
+    });
   }
 
   function hitPlayer() {
     lives -= 1;
     invulnTimer = PLAYER_INVULN_TIME;
-    if (lives <= 0) phase = "over";
+    if (lives <= 0) {
+      phase = "over";
+      clearProgress();
+    } else {
+      saveProgress(waveIndex, lives);
+    }
   }
 
   function update(dt: number) {
@@ -358,6 +443,7 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
         waveIndex += 1;
         spawnWave();
         phase = "playing";
+        saveProgress(waveIndex, lives);
       }
       return;
     }
@@ -472,25 +558,25 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
 
   function drawHud() {
     ctx.fillStyle = "#f1efe8";
-    ctx.font = "10px monospace";
+    ctx.font = "12px monospace";
     ctx.textBaseline = "top";
     ctx.textAlign = "left";
-    ctx.fillText(`WAVE ${waveIndex + 1}`, 6, 6);
+    ctx.fillText(`WAVE ${waveIndex + 1}`, 8, 8);
     ctx.textAlign = "right";
-    ctx.fillText(`LIVES ${lives}`, WIDTH - 6, 6);
+    ctx.fillText(`LIVES ${lives}`, WIDTH - 8, 8);
 
     ctx.textAlign = "left";
     POWERUP_KINDS.forEach((kind, i) => {
       const active = buffs[kind] > 0;
-      const bx = 6 + i * 16;
-      const by = 20;
+      const bx = 8 + i * 20;
+      const by = 26;
       ctx.fillStyle = active ? POWERUP_COLORS[kind] : "#3a3a52";
-      ctx.fillRect(bx, by, 12, 12);
+      ctx.fillRect(bx, by, 16, 16);
       ctx.fillStyle = active ? "#050510" : "#b4b2a9";
-      ctx.font = "8px monospace";
+      ctx.font = "10px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(POWERUP_LABELS[kind], bx + 6, by + 7);
+      ctx.fillText(POWERUP_LABELS[kind], bx + 8, by + 9);
     });
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -500,7 +586,7 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
     ctx.fillStyle = POWERUP_COLORS[p.kind];
     ctx.fillRect(p.x, p.y, p.w, p.h);
     ctx.fillStyle = "#050510";
-    ctx.font = "9px monospace";
+    ctx.font = "11px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(POWERUP_LABELS[p.kind], p.x + p.w / 2, p.y + p.h / 2 + 1);
@@ -518,7 +604,7 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
       if (buffs.shield > 0) {
         ctx.strokeStyle = "#5dcaa5";
         ctx.globalAlpha = 0.6;
-        ctx.strokeRect(player.x - 3, player.y - 3, player.w + 6, player.h + 6);
+        ctx.strokeRect(player.x - 4, player.y - 4, player.w + 8, player.h + 8);
         ctx.globalAlpha = 1;
       }
     }
@@ -539,19 +625,19 @@ export function mountGame(root: HTMLElement, onScore: (delta: number) => void): 
 
     if (phase === "wave-clear") {
       ctx.fillStyle = "#fac775";
-      ctx.font = "16px monospace";
+      ctx.font = "22px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
       ctx.fillText(`WAVE ${waveIndex + 1} CLEAR`, WIDTH / 2, HEIGHT / 2);
     } else if (phase === "over") {
       ctx.fillStyle = "#ed93b1";
-      ctx.font = "18px monospace";
+      ctx.font = "26px monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("GAME OVER", WIDTH / 2, HEIGHT / 2 - 12);
+      ctx.fillText("GAME OVER", WIDTH / 2, HEIGHT / 2 - 16);
       ctx.fillStyle = "#f1efe8";
-      ctx.font = "10px monospace";
-      ctx.fillText("SPACE / TAP TO CONTINUE", WIDTH / 2, HEIGHT / 2 + 12);
+      ctx.font = "14px monospace";
+      ctx.fillText("SPACE / TAP TO CONTINUE", WIDTH / 2, HEIGHT / 2 + 16);
     }
   }
 
