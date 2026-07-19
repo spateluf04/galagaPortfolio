@@ -192,12 +192,17 @@ function applyHeadingEntry(target: HeadingTarget, progress: number): void {
 
   const charsShown =
     target.textLength > 0 ? Math.floor(progress * target.textLength) : 0;
-  const leadingEdgeEnd = Math.min(charsShown + 2, target.textLength);
-  let leadingEdge = "";
-  for (let i = charsShown; i < leadingEdgeEnd; i++) {
-    leadingEdge += target.text[i] === " " ? " " : randomGlyphs(1);
+  let out = "";
+  for (let i = 0; i < target.textLength; i++) {
+    if (target.text[i] === " ") {
+      out += " ";
+    } else if (i < charsShown) {
+      out += target.text[i];
+    } else {
+      out += randomGlyphs(1);
+    }
   }
-  target.span.textContent = target.text.slice(0, charsShown) + leadingEdge;
+  target.span.textContent = out;
   target.span.classList.toggle("heading-type--typing", progress > 0 && progress < 1);
 }
 
