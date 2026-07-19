@@ -7,6 +7,7 @@ const ENTRY_SELECTOR = [
 ].join(", ");
 
 const RISE_TRAVEL = 28;
+const FLAME_SCALE_MAX = 3;
 const STAGGER_STEP = 0.08;
 const ENTRY_SPAN = 0.35;
 
@@ -185,8 +186,13 @@ function applyHeadingEntry(target: HeadingTarget, progress: number): void {
 function applyHeroParallax(children: HeroChild[], scrollY: number, heroHeight: number): void {
   const progress = heroHeight > 0 ? Math.min(scrollY / heroHeight, 1) : 1;
   const fade = (1 - progress).toFixed(2);
+  // The ship's thruster flame grows as it "takes off" during the exit —
+  // driven via the --flame-scale custom property, which cascades from this
+  // wrapper div down to the .flight-ship__flame rects inside its SVG.
+  const flameScale = (1 + progress * (FLAME_SCALE_MAX - 1)).toFixed(2);
   for (const { el, rate } of children) {
     el.style.transform = `translateY(${(-rate * scrollY).toFixed(1)}px)`;
     el.style.opacity = fade;
+    if (el.classList.contains("hero__ship")) el.style.setProperty("--flame-scale", flameScale);
   }
 }

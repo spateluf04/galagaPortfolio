@@ -2,10 +2,7 @@ export const profile = {
   name: "Samir Patel",
   shortName: "Sam Patel",
   school: "University of Florida",
-  taglines: [
-    "Computer Science @ UF · shipping small, useful things",
-    "CS student · turning caffeine into code",
-  ],
+  taglines: ["Computer Science @ UF", "CS student · turning caffeine into code"],
   activeTagline: 0,
   bio: "Junior Computer Science student at the University of Florida. I like building things end to end — from wiring up hardware and offline data pipelines to shipping polished, usable interfaces. Currently exploring energy systems, mobile apps, and open-source contributions.",
   quickFacts: [
