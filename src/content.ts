@@ -3,7 +3,6 @@ export const profile = {
   shortName: "Sam Patel",
   school: "University of Florida",
   taglines: [
-    "CS student · I build software",
     "Computer Science @ UF · shipping small, useful things",
     "CS student · turning caffeine into code",
   ],
