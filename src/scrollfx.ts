@@ -131,19 +131,35 @@ function buildEntryTargets(): EntryTarget[] {
     const offset = count * STAGGER_STEP;
 
     if (el.classList.contains("section-heading")) {
-      // Headings are plain text today (see index.html) — wrap that text in
-      // a span so the scramble reveal below doesn't disturb the heading's
-      // own full-width border-bottom. The span's visible text flickers
-      // through scramble glyphs mid-reveal, so it's hidden from assistive
-      // tech in favor of a stable aria-label on the heading itself.
-      const text = el.textContent ?? "";
-      el.textContent = "";
-      el.setAttribute("aria-label", text);
+      // Headings are plain text today, aside from an occasional decorative
+      // element (e.g. the contact heading's arrow span — see index.html) —
+      // wrap only the text nodes in a span so the scramble reveal below
+      // doesn't disturb the heading's own full-width border-bottom, and
+      // leave any such decorative child element alone so it keeps its own
+      // static, independently-centered layout instead of being flattened
+      // into the scrambled string. The span's visible text flickers through
+      // scramble glyphs mid-reveal, so it's hidden from assistive tech in
+      // favor of a stable aria-label on the heading itself.
+      const fullText = el.textContent ?? "";
+      el.setAttribute("aria-label", fullText);
+
+      const textNodes = Array.from(el.childNodes).filter(
+        (node): node is Text => node.nodeType === Node.TEXT_NODE,
+      );
+      const text = textNodes.map((node) => node.textContent ?? "").join("");
+
       const span = document.createElement("span");
       span.className = "heading-type";
       span.setAttribute("aria-hidden", "true");
       span.textContent = text;
-      el.appendChild(span);
+
+      if (textNodes.length > 0) {
+        el.insertBefore(span, textNodes[0]);
+        for (const node of textNodes) el.removeChild(node);
+      } else {
+        el.appendChild(span);
+      }
+
       return {
         kind: "heading",
         el,

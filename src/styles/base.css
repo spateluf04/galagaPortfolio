@@ -139,6 +139,19 @@ main {
   display: inline-block;
 }
 
+.section-heading__arrow {
+  display: inline-block;
+  vertical-align: middle;
+  /* The preceding text lives in its own inline-block span (.heading-type)
+     so its scramble reveal doesn't disturb this arrow's layout — but that
+     means the trailing space at the end of that span's text collapses away
+     per normal inline whitespace rules, so the gap is rebuilt here instead. */
+  margin-left: 0.5em;
+  /* "Press Start 2P" has no glyph for U+2192, so it falls back to a system
+     font whose arrow sits low relative to this pixel font's cap-height. */
+  transform: translateY(-0.18em);
+}
+
 @keyframes caret-blink {
   50% {
     opacity: 0;
