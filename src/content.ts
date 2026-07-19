@@ -8,9 +8,10 @@ export const profile = {
     "CS student · turning caffeine into code",
   ],
   activeTagline: 0,
-  bio: "Computer Science student at the University of Florida. I like building things end to end — from wiring up hardware and offline data pipelines to shipping polished, usable interfaces. Currently exploring energy systems, mobile apps, and open-source contributions.",
+  bio: "Junior Computer Science student at the University of Florida. I like building things end to end — from wiring up hardware and offline data pipelines to shipping polished, usable interfaces. Currently exploring energy systems, mobile apps, and open-source contributions.",
   quickFacts: [
     { label: "SCHOOL", value: "University of Florida" },
+    { label: "YEAR", value: "Junior" },
     { label: "FOCUS", value: "Full-stack + systems" },
     { label: "BUILDING", value: "RoomScan, The Pause Protocol" },
     { label: "THIS SITE", value: "Hand-built, vanilla TS + Canvas — no game libraries, including the mini-game (try PRESS SPACE up top)" },
@@ -96,7 +97,14 @@ export const skillGroups: SkillGroup[] = [
   },
   {
     label: "Coursework",
-    items: ["Operating Systems", "Linear Algebra", "Software Engineering"],
+    items: [
+      "Programming Fundamentals 1",
+      "Programming Fundamentals 2",
+      "Data Structures & Algorithms",
+      "Operating Systems",
+      "Linear Algebra",
+      "Software Engineering",
+    ],
   },
 ];
 
