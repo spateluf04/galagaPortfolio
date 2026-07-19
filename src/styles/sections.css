@@ -83,6 +83,10 @@
   animation-delay: 270ms;
 }
 
+.hero__ship svg {
+  overflow: visible;
+}
+
 .ship-hull {
   fill: var(--accent-teal);
 }

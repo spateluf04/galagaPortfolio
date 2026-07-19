@@ -8,6 +8,7 @@ import { initHud } from "./hud";
 import { enemyIconSvg, skillIconSvg } from "./pixel-icons";
 import { initScrollFx } from "./scrollfx";
 import { initFlight } from "./flight";
+import { scrambleIn } from "./scramble";
 
 function $<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -196,6 +197,8 @@ function initInsertCoin() {
 function init() {
   document.title = `${profile.name} — CS Student`;
   renderTagline();
+  scrambleIn($(".hero__name"), 700);
+  scrambleIn($("#hero-tagline"), 700);
   renderFormation();
   renderAbout();
   renderProjects();

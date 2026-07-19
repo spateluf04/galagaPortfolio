@@ -1,3 +1,5 @@
+import { randomGlyphs } from "./scramble";
+
 const ENTRY_SELECTOR = [
   ".section-heading",
   ".about__grid",
@@ -7,7 +9,7 @@ const ENTRY_SELECTOR = [
 ].join(", ");
 
 const RISE_TRAVEL = 28;
-const FLAME_SCALE_MAX = 3;
+const FLAME_SCALE_MAX = 5;
 const STAGGER_STEP = 0.08;
 const ENTRY_SPAN = 0.35;
 
@@ -28,6 +30,7 @@ interface HeadingTarget {
   kind: "heading";
   el: HTMLElement;
   span: HTMLElement;
+  text: string;
   textLength: number;
   offset: number;
   saturated: boolean;
@@ -51,7 +54,7 @@ interface HeroChild {
 // sections while scrolling fast, scroll-scrubbed entry for below-fold
 // content (scrubs back out if you scroll back up, until it's fully entered
 // once — then it saturates and stays, like a one-shot reveal) — section
-// headings type themselves out via a clip-path reveal, everything else
+// headings type themselves out via a glyph-scramble reveal, everything else
 // rises + fades — and a hero parallax exit. Progressive enhancement only —
 // every offset here is an inline style applied from JS, so with JS disabled
 // all content renders fully visible in its normal position.
@@ -128,15 +131,27 @@ function buildEntryTargets(): EntryTarget[] {
 
     if (el.classList.contains("section-heading")) {
       // Headings are plain text today (see index.html) — wrap that text in
-      // a span so the clip-path reveal below doesn't clip the heading's own
-      // full-width border-bottom.
+      // a span so the scramble reveal below doesn't disturb the heading's
+      // own full-width border-bottom. The span's visible text flickers
+      // through scramble glyphs mid-reveal, so it's hidden from assistive
+      // tech in favor of a stable aria-label on the heading itself.
       const text = el.textContent ?? "";
       el.textContent = "";
+      el.setAttribute("aria-label", text);
       const span = document.createElement("span");
       span.className = "heading-type";
+      span.setAttribute("aria-hidden", "true");
       span.textContent = text;
       el.appendChild(span);
-      return { kind: "heading", el, span, textLength: text.length, offset, saturated: false };
+      return {
+        kind: "heading",
+        el,
+        span,
+        text,
+        textLength: text.length,
+        offset,
+        saturated: false,
+      };
     }
 
     return { kind: "rise", el, offset, saturated: false };
@@ -169,7 +184,7 @@ function applyEntry(target: EntryTarget, vh: number): void {
 
 function applyHeadingEntry(target: HeadingTarget, progress: number): void {
   if (progress >= 1) {
-    target.span.style.clipPath = "";
+    target.span.textContent = target.text;
     target.span.classList.remove("heading-type--typing");
     target.saturated = true;
     return;
@@ -177,9 +192,12 @@ function applyHeadingEntry(target: HeadingTarget, progress: number): void {
 
   const charsShown =
     target.textLength > 0 ? Math.floor(progress * target.textLength) : 0;
-  const hiddenPct =
-    target.textLength > 0 ? ((target.textLength - charsShown) / target.textLength) * 100 : 100;
-  target.span.style.clipPath = `inset(0 ${hiddenPct.toFixed(2)}% 0 0)`;
+  const leadingEdgeEnd = Math.min(charsShown + 2, target.textLength);
+  let leadingEdge = "";
+  for (let i = charsShown; i < leadingEdgeEnd; i++) {
+    leadingEdge += target.text[i] === " " ? " " : randomGlyphs(1);
+  }
+  target.span.textContent = target.text.slice(0, charsShown) + leadingEdge;
   target.span.classList.toggle("heading-type--typing", progress > 0 && progress < 1);
 }
 

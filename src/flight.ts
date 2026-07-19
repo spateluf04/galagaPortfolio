@@ -72,7 +72,12 @@ export function initFlight(): void {
       currentX = dash.fromX + (dash.toX - dash.fromX) * easeInOutQuad(t);
       currentY = dash.y;
       currentRotation = dash.rotation;
+      group.style.setProperty("--flame-scale", String(1 + 2.2 * Math.sin(Math.PI * t)));
       if (t >= 1) dash = null;
+    }
+
+    if (!dash) {
+      group.style.setProperty("--flame-scale", "1");
     }
 
     const target = dash ? 1 : 0;

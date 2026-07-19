@@ -53,22 +53,22 @@ export const projects: Project[] = [
   },
   {
     stage: "STAGE 03",
-    title: "Checkmate",
-    blurb: "Open-source contribution: escalated notifications.",
+    title: "PharmacyDash",
+    blurb: "Clinical dashboard that catches medication over-prescription errors.",
     detail:
-      "Implemented an escalated-notifications feature for Checkmate, an open-source server monitoring tool, as part of CEN3031 coursework.",
-    tech: ["Open Source", "Node.js"],
-    github: "", // PLACEHOLDER — add PR/repo URL
+      "A clinical dashboard built on a 'two-brain' architecture: a deterministic rules engine (max dose, duplicate therapy, MME, age checks) makes every safety decision, while Claude sits in an advisory layer — translating pharmacists' plain-English protocols into structured rules and explaining flags in plain language, but never making the clinical call itself. A strict de-identification boundary ensures only tokenized, non-PHI data ever reaches the AI layer, keeping it HIPAA-manageable and outside FDA medical-device regulation.",
+    tech: ["FastAPI", "Python", "React", "TypeScript", "Claude API"],
+    github: "", // PLACEHOLDER — add repo URL
     demo: undefined,
   },
   {
     stage: "STAGE 04",
-    title: "Hackathon Starter",
-    blurb: "Next.js template built to speed up hackathon teams.",
+    title: "DSA E-Commerce Engine",
+    blurb: "C++ engine that mines e-commerce data for recommendations.",
     detail:
-      "A Next.js 14 + TypeScript + Tailwind + Firebase template with drop-in LLM, storage, and Firestore modules, designed to get hackathon teams from zero to building in minutes.",
-    tech: ["Next.js 14", "TypeScript", "Tailwind", "Firebase"],
-    github: "", // PLACEHOLDER — add repo URL
+      "A command-line tool built for Data Structures & Algorithms coursework. Ingests e-commerce order, product, and customer CSV data and provides dataset statistics, a merge-sort-vs-quick-sort benchmark, and a product co-purchase graph built from order histories — powering 'customers who bought this also bought...' recommendations via nearest-neighbor queries on a given product ID.",
+    tech: ["C++", "CMake", "Graphs", "Sorting"],
+    github: "https://github.com/spateluf04/DSAProject2-ECommerce",
     demo: undefined,
   },
 ];

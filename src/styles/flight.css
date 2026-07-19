@@ -27,8 +27,12 @@
 
 .flight-ship__flame {
   transform-box: fill-box;
-  transform-origin: center;
+  transform-origin: top;
   transform: scaleY(var(--flame-scale, 1));
+}
+
+.flight-ship svg {
+  overflow: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {
