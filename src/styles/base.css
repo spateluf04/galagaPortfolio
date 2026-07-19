@@ -35,6 +35,8 @@
 html {
   background: var(--color-bg);
   color-scheme: dark;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--hud-height);
 }
 
 body {
@@ -186,6 +188,10 @@ body::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   body::after {
     display: none;
   }
