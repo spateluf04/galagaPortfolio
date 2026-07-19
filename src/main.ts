@@ -6,7 +6,7 @@ import { profile, projects, skillGroups, nav } from "./content";
 import { initStarfield } from "./starfield";
 import { initHud } from "./hud";
 import { enemyIconSvg, skillIconSvg } from "./pixel-icons";
-import { initReveal } from "./reveal";
+import { initScrollFx } from "./scrollfx";
 import { initFlight } from "./flight";
 
 function $<T extends HTMLElement>(selector: string): T {
@@ -206,7 +206,7 @@ function init() {
 
   initStarfield($<HTMLCanvasElement>("#starfield"));
   initHud($("#hud-score"), $("#hud-stage"));
-  initReveal();
+  initScrollFx();
   initFlight();
 }
 
