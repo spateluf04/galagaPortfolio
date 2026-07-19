@@ -197,8 +197,8 @@ function initInsertCoin() {
 function init() {
   document.title = `${profile.name} — CS Student`;
   renderTagline();
-  scrambleIn($(".hero__name"), 700);
-  scrambleIn($("#hero-tagline"), 700);
+  scrambleIn($(".hero__name"), 1500);
+  scrambleIn($("#hero-tagline"), 1500);
   renderFormation();
   renderAbout();
   renderProjects();

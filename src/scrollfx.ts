@@ -1,4 +1,4 @@
-import { randomGlyphs } from "./scramble";
+import { buildScrambledText } from "./scramble";
 
 const ENTRY_SELECTOR = [
   ".section-heading",
@@ -12,6 +12,7 @@ const RISE_TRAVEL = 28;
 const FLAME_SCALE_MAX = 5;
 const STAGGER_STEP = 0.08;
 const ENTRY_SPAN = 0.35;
+const HEADING_SCRAMBLE_MS = 1500;
 
 const SKEW_MAX_DESKTOP = 1.2;
 const SKEW_MAX_MOBILE = 0.6;
@@ -166,7 +167,7 @@ function applyEntry(target: EntryTarget, vh: number): void {
   const progress = Math.min(Math.max(raw, 0), 1);
 
   if (target.kind === "heading") {
-    applyHeadingEntry(target, progress);
+    if (progress > 0) startHeadingScramble(target);
     return;
   }
 
@@ -182,28 +183,35 @@ function applyEntry(target: EntryTarget, vh: number): void {
   target.el.style.transform = `translateY(${travel}px)`;
 }
 
-function applyHeadingEntry(target: HeadingTarget, progress: number): void {
-  if (progress >= 1) {
-    target.span.textContent = target.text;
-    target.span.classList.remove("heading-type--typing");
-    target.saturated = true;
-    return;
+// Triggered once when a heading first enters its scroll-entry window. From
+// here the reveal runs on its own clock (HEADING_SCRAMBLE_MS), independent
+// of further scroll — a fast scroll that jumps a heading straight into view
+// still gets the full scramble, rather than skipping straight to the
+// resolved text (see applyEntry, which already sets target.saturated so
+// this never fires twice).
+function startHeadingScramble(target: HeadingTarget): void {
+  target.saturated = true;
+  target.span.classList.add("heading-type--typing");
+
+  const start = performance.now();
+
+  function frame(now: number) {
+    const progress = Math.min((now - start) / HEADING_SCRAMBLE_MS, 1);
+
+    if (progress >= 1) {
+      target.span.textContent = target.text;
+      target.span.classList.remove("heading-type--typing");
+      return;
+    }
+
+    target.span.textContent = buildScrambledText(
+      target.text,
+      Math.floor(progress * target.textLength),
+    );
+    requestAnimationFrame(frame);
   }
 
-  const charsShown =
-    target.textLength > 0 ? Math.floor(progress * target.textLength) : 0;
-  let out = "";
-  for (let i = 0; i < target.textLength; i++) {
-    if (target.text[i] === " ") {
-      out += " ";
-    } else if (i < charsShown) {
-      out += target.text[i];
-    } else {
-      out += randomGlyphs(1);
-    }
-  }
-  target.span.textContent = out;
-  target.span.classList.toggle("heading-type--typing", progress > 0 && progress < 1);
+  requestAnimationFrame(frame);
 }
 
 function applyHeroParallax(children: HeroChild[], scrollY: number, heroHeight: number): void {
