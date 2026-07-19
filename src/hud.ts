@@ -8,6 +8,9 @@ export function initHud(scoreEl: HTMLElement, stageEl: HTMLElement): void {
     (el): el is HTMLElement => el !== null,
   );
 
+  const progressFill = document.getElementById("hud-progress-fill");
+  const returnBase = document.getElementById("return-base");
+
   let lastIndex = -1;
 
   function update() {
@@ -16,6 +19,9 @@ export function initHud(scoreEl: HTMLElement, stageEl: HTMLElement): void {
     const progress = scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
     const score = Math.round((progress * MAX_SCORE) / 10) * 10;
     scoreEl.textContent = score.toString().padStart(6, "0");
+
+    if (progressFill) progressFill.style.transform = `scaleX(${progress.toFixed(4)})`;
+    if (returnBase) returnBase.classList.toggle("return-base--visible", window.scrollY > window.innerHeight * 0.8);
 
     // Current stage = the deepest section whose top has crossed the
     // viewport's vertical center. Comparing intersection *ratios* here

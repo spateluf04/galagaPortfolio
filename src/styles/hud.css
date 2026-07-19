@@ -17,6 +17,40 @@
   font-size: 9px;
 }
 
+.hud__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.hud__progress-fill {
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--accent-amber);
+  will-change: transform;
+}
+
+.hud__progress::after {
+  /* pixel-segment notches over the fill, arcade charge-bar look */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent 7px,
+    var(--color-bg) 7px,
+    var(--color-bg) 8px
+  );
+  pointer-events: none;
+}
+
 .hud__item {
   display: flex;
   flex-direction: column;

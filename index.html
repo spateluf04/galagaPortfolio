@@ -38,6 +38,9 @@
         <span class="hud__label">STAGE</span>
         <span id="hud-stage" class="hud__value">1/4</span>
       </div>
+      <div class="hud__progress" aria-hidden="true">
+        <div id="hud-progress-fill" class="hud__progress-fill"></div>
+      </div>
     </header>
 
     <main id="main">
@@ -157,6 +160,8 @@
     </footer>
 
     <div id="game-root" hidden></div>
+
+    <a id="return-base" href="#hero" class="return-base bracketed" aria-label="Return to top">▲ BASE</a>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

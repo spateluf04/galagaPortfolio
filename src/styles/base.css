@@ -135,6 +135,27 @@ main {
   letter-spacing: 0.05em;
 }
 
+.heading-type {
+  display: inline-block;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.heading-type--typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--accent-amber);
+  vertical-align: text-bottom;
+  animation: caret-blink 0.8s steps(1) infinite;
+}
+
 section {
   padding: var(--space-5) var(--space-2);
   max-width: 1100px;
@@ -168,6 +189,44 @@ section {
   right: -2px;
   border-left: none;
   border-top: none;
+}
+
+/* Comes after .bracketed in source order so its `position: fixed` wins the
+   cascade over .bracketed's `position: relative` at equal specificity —
+   .bracketed's ::before/::after corner marks still anchor correctly since
+   fixed is a positioned value too. */
+.return-base {
+  position: fixed;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg);
+  border: 2px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.15s ease;
+}
+
+.return-base--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.return-base:hover,
+.return-base:focus-visible {
+  background: rgba(250, 199, 117, 0.12);
 }
 
 /* CRT scanline overlay — faint, disabled under reduced motion */

@@ -6,7 +6,6 @@ const ENTRY_SELECTOR = [
   ".contact__action",
 ].join(", ");
 
-const HEADING_TRAVEL = 32;
 const RISE_TRAVEL = 28;
 const STAGGER_STEP = 0.08;
 const ENTRY_SPAN = 0.35;
@@ -24,12 +23,23 @@ const HERO_CHILDREN: { selector: string; rate: number }[] = [
   { selector: ".insert-coin", rate: 0.1 },
 ];
 
-interface EntryTarget {
+interface HeadingTarget {
+  kind: "heading";
   el: HTMLElement;
-  axis: "x" | "y";
+  span: HTMLElement;
+  textLength: number;
   offset: number;
   saturated: boolean;
 }
+
+interface RiseTarget {
+  kind: "rise";
+  el: HTMLElement;
+  offset: number;
+  saturated: boolean;
+}
+
+type EntryTarget = HeadingTarget | RiseTarget;
 
 interface HeroChild {
   el: HTMLElement;
@@ -39,10 +49,11 @@ interface HeroChild {
 // Scroll-driven content effects: a subtle velocity "smear" (skewY) on
 // sections while scrolling fast, scroll-scrubbed entry for below-fold
 // content (scrubs back out if you scroll back up, until it's fully entered
-// once — then it saturates and stays, like a one-shot reveal), and a hero
-// parallax exit. Progressive enhancement only — every offset here is an
-// inline style applied from JS, so with JS disabled all content renders
-// fully visible in its normal position.
+// once — then it saturates and stays, like a one-shot reveal) — section
+// headings type themselves out via a clip-path reveal, everything else
+// rises + fades — and a hero parallax exit. Progressive enhancement only —
+// every offset here is an inline style applied from JS, so with JS disabled
+// all content renders fully visible in its normal position.
 export function initScrollFx(): void {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -112,8 +123,22 @@ function buildEntryTargets(): EntryTarget[] {
     const parent = el.parentElement;
     const count = indexInParent.get(parent) ?? 0;
     indexInParent.set(parent, count + 1);
-    const axis: "x" | "y" = el.classList.contains("section-heading") ? "x" : "y";
-    return { el, axis, offset: count * STAGGER_STEP, saturated: false };
+    const offset = count * STAGGER_STEP;
+
+    if (el.classList.contains("section-heading")) {
+      // Headings are plain text today (see index.html) — wrap that text in
+      // a span so the clip-path reveal below doesn't clip the heading's own
+      // full-width border-bottom.
+      const text = el.textContent ?? "";
+      el.textContent = "";
+      const span = document.createElement("span");
+      span.className = "heading-type";
+      span.textContent = text;
+      el.appendChild(span);
+      return { kind: "heading", el, span, textLength: text.length, offset, saturated: false };
+    }
+
+    return { kind: "rise", el, offset, saturated: false };
   });
 }
 
@@ -124,6 +149,11 @@ function applyEntry(target: EntryTarget, vh: number): void {
   const raw = (vh - rect.top) / (ENTRY_SPAN * vh) - target.offset;
   const progress = Math.min(Math.max(raw, 0), 1);
 
+  if (target.kind === "heading") {
+    applyHeadingEntry(target, progress);
+    return;
+  }
+
   if (progress >= 1) {
     target.el.style.opacity = "";
     target.el.style.transform = "";
@@ -131,10 +161,25 @@ function applyEntry(target: EntryTarget, vh: number): void {
     return;
   }
 
-  const travel = (1 - progress) * (target.axis === "x" ? HEADING_TRAVEL : RISE_TRAVEL);
+  const travel = (1 - progress) * RISE_TRAVEL;
   target.el.style.opacity = progress.toFixed(2);
-  target.el.style.transform =
-    target.axis === "x" ? `translateX(${-travel}px)` : `translateY(${travel}px)`;
+  target.el.style.transform = `translateY(${travel}px)`;
+}
+
+function applyHeadingEntry(target: HeadingTarget, progress: number): void {
+  if (progress >= 1) {
+    target.span.style.clipPath = "";
+    target.span.classList.remove("heading-type--typing");
+    target.saturated = true;
+    return;
+  }
+
+  const charsShown =
+    target.textLength > 0 ? Math.floor(progress * target.textLength) : 0;
+  const hiddenPct =
+    target.textLength > 0 ? ((target.textLength - charsShown) / target.textLength) * 100 : 100;
+  target.span.style.clipPath = `inset(0 ${hiddenPct.toFixed(2)}% 0 0)`;
+  target.span.classList.toggle("heading-type--typing", progress > 0 && progress < 1);
 }
 
 function applyHeroParallax(children: HeroChild[], scrollY: number, heroHeight: number): void {
