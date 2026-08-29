@@ -6,6 +6,40 @@
     <meta name="color-scheme" content="dark" />
     <meta name="description" content="Samir Patel — Computer Science student at the University of Florida. Projects, skills, and contact info." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!--
+      SITE_URL: replace both occurrences below with the real deployed origin
+      once Netlify is connected (e.g. https://samirpatel.netlify.app or a
+      custom domain). Open Graph requires ABSOLUTE urls — a relative og:image
+      is unreliable across scrapers, so this must be filled in for LinkedIn /
+      Slack / iMessage link previews to render the card.
+    -->
+    <link rel="canonical" href="https://samirpatel.netlify.app/" />
+    <meta name="theme-color" content="#050510" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Samir Patel" />
+    <meta property="og:title" content="Samir Patel — CS Student @ UF" />
+    <meta
+      property="og:description"
+      content="Retro arcade portfolio: projects, skills, and contact for a junior CS student at the University of Florida."
+    />
+    <meta property="og:url" content="https://samirpatel.netlify.app/" />
+    <meta property="og:image" content="https://samirpatel.netlify.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Arcade title screen reading SAMIR PATEL, COMPUTER SCIENCE @ UF, with a pixel-art ship."
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Samir Patel — CS Student @ UF" />
+    <meta
+      name="twitter:description"
+      content="Retro arcade portfolio: projects, skills, and contact for a junior CS student at the University of Florida."
+    />
+    <meta name="twitter:image" content="https://samirpatel.netlify.app/og-image.png" />
     <title>Samir Patel — CS Student</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -73,9 +107,12 @@
       <section id="about" class="about" aria-labelledby="about-heading">
         <h2 id="about-heading" class="section-heading">Player Profile</h2>
         <div class="about__grid">
-          <div class="about__photo" role="img" aria-label="Photo placeholder for Samir Patel">
-            <span>PHOTO</span>
-          </div>
+          <div
+            id="about-avatar"
+            class="about__photo"
+            role="img"
+            aria-label="Pixel-art portrait of Samir Patel"
+          ></div>
           <div class="about__text">
             <p id="about-bio" class="about__bio"></p>
             <ul id="quick-facts" class="quick-facts"></ul>
@@ -160,6 +197,8 @@
     </footer>
 
     <div id="game-root" hidden></div>
+
+    <div id="project-modal-root" hidden></div>
 
     <a id="return-base" href="#hero" class="return-base bracketed" aria-label="Return to top">▲ BASE</a>
 

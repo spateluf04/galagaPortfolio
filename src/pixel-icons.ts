@@ -18,6 +18,85 @@ function gridToSvg(grid: string[], color: string, size: number): string {
   return `<svg viewBox="0 0 ${w} ${h}" width="${size}" height="${size}" shape-rendering="crispEdges" aria-hidden="true">${rects.join("")}</svg>`;
 }
 
+// Multi-tone variant of gridToSvg: each character keys into a palette, so a
+// grid can carry more than one colour. "." is transparent.
+function shadeGridToSvg(grid: string[], palette: Record<string, string>, size: number): string {
+  const cell = 4;
+  const rects: string[] = [];
+  grid.forEach((row, y) => {
+    row.split("").forEach((char, x) => {
+      const fill = palette[char];
+      if (!fill) return;
+      rects.push(
+        `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}" fill="${fill}" />`,
+      );
+    });
+  });
+  const w = grid[0].length * cell;
+  const h = grid.length * cell;
+  return `<svg viewBox="0 0 ${w} ${h}" width="${size}" height="${size}" shape-rendering="crispEdges" aria-hidden="true">${rects.join("")}</svg>`;
+}
+
+// Hand-authored pixel portrait of Samir, drawn from a reference photo the way
+// an artist would work from one — every cell is placed by hand, not traced or
+// auto-downsampled (a straight luminance downsample of the source photo turns
+// to mush at this resolution). Palette is deliberately pulled from the site
+// tokens so the portrait sits inside the arcade look instead of fighting it.
+//   h hair   k glasses   s skin   d skin shadow   w white
+//   b bindi  j jacket    g gold chain             z zipper
+const PORTRAIT_GRID: string[] = [
+  "...........h..hh...h............",
+  "..........hhhhhhhhhhhh..........",
+  "........hhhhhhhhhhhhhhhh........",
+  ".......hhhhhhhhhhhhhhhhhh.......",
+  "......hhhhhhhhhhhhhhhhhhhh......",
+  "......hhhhhhhhhhhhhhhhhhhh......",
+  "......hhhhsssssssssssshhhh......",
+  "......hhhssssssbbsssssshhh......",
+  "......hhhsssssssssssssshhh......",
+  "......hhsssssssssssssssshh......",
+  "......hhsshhhhhsshhhhhsshh......",
+  "......hhsssssssssssssssshh......",
+  "......hhkkkkkksssskkkkkkhh......",
+  "......hhksssskssssksssskhh......",
+  "......hhkweewksssskweewkhh......",
+  "......hhkkkkkksssskkkkkkhh......",
+  "......hhsssssssddssssssshh......",
+  "......hhssssssddddsssssshh......",
+  "......hhssssswwwwwwssssshh......",
+  "......hhssssssddddsssssshh......",
+  "......hhsssssssssssssssshh......",
+  ".......hssssssssssssssssh.......",
+  "........hssssssssssssssh........",
+  ".........hssssssssssssh.........",
+  "...........hssssssssh...........",
+  ".......jjjjjdssssssdjjjjj.......",
+  "....jjjjjjjjdssssssdjjjjjjjj....",
+  "..jjjjjjjjjjgssssssgjjjjjjjjjj..",
+  "jjjjjjjjjjjjggssssggjjjjjjjjjjjj",
+  "jjjjjjjjjjjjjjggggjjjjjjjjjjjjjj",
+  "jjjjjjjjjjjjjjjzzjjjjjjjjjjjjjjj",
+  "jjjjjjjjjjjjjjjzzjjjjjjjjjjjjjjj",
+];
+
+const PORTRAIT_PALETTE: Record<string, string> = {
+  h: "#33355c", // hair, brows, and the sideburn frame around the face
+  k: "#15162a", // glasses frame
+  s: "#e8b07a", // skin
+  d: "#b8804e", // skin in shadow (nose, jaw, neck)
+  w: "#fdfdff", // smile
+  e: "#15162a", // pupils
+  b: "var(--accent-pink)", // bindi
+  j: "#3a3d63", // jacket — kept well above the page background so the
+                // shoulders still read as a silhouette on #050510
+  g: "#f0b83f", // gold chain
+  z: "#8a8db5", // zipper
+};
+
+export function avatarSvg(size = 160): string {
+  return shadeGridToSvg(PORTRAIT_GRID, PORTRAIT_PALETTE, size);
+}
+
 const ENEMY_GRIDS: string[][] = [
   // diamond drone
   ["..XX..", ".XXXX.", "XXXXXX", ".XXXX.", "..XX.."],
@@ -27,8 +106,8 @@ const ENEMY_GRIDS: string[][] = [
   [".X..X.", "XX..XX", "XXXXXX", ".XXXX.", "..XX.."],
 ];
 
-export function enemyIconSvg(index: number, colorVar: string): string {
-  return gridToSvg(ENEMY_GRIDS[index % ENEMY_GRIDS.length], colorVar, 28);
+export function enemyIconSvg(index: number, colorVar: string, size = 28): string {
+  return gridToSvg(ENEMY_GRIDS[index % ENEMY_GRIDS.length], colorVar, size);
 }
 
 // Abstract pixel glyphs for skill items — original shapes evoking each

@@ -133,9 +133,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
-  font-family: var(--font-pixel);
-  font-size: 10px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, rgba(250, 199, 117, 0.1), transparent 72%);
+}
+
+.about__photo svg {
+  width: 78%;
+  height: auto;
+  /* Sits on the pixel grid, so keep the glow soft enough not to blur edges. */
+  filter: drop-shadow(0 0 5px rgba(250, 199, 117, 0.28));
+}
+
+/* CRT scanline overlay — static, so it costs nothing and needs no
+   reduced-motion guard. */
+.about__photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(5, 5, 16, 0) 0px,
+    rgba(5, 5, 16, 0) 2px,
+    rgba(5, 5, 16, 0.45) 3px,
+    rgba(5, 5, 16, 0.45) 4px
+  );
 }
 
 .about__bio {
@@ -179,10 +202,8 @@
 
 .project-card {
   border: 2px solid var(--color-border);
-  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
@@ -192,43 +213,112 @@
   transform: translateY(-2px);
 }
 
-.project-card__header {
+/* The "poster" — a themed art panel (gradient + a large pixel-icon glyph,
+   no stock photography, per CLAUDE.md's original-art-only rule) that also
+   doubles as the future slot for a real project screenshot. Clicking it
+   opens the mission-briefing dialog (src/project-modal.ts); the icon-sized
+   --poster-accent custom property is read back from this element's inline
+   style by that module so both the collapsed and expanded views share one
+   color per project instead of two hardcoded palettes drifting apart. */
+.project-card__poster {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 180px;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+
+.project-card__poster-visual {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 80% 15%, color-mix(in srgb, var(--poster-accent, var(--accent-amber)) 25%, transparent), transparent 60%),
+    linear-gradient(160deg, #10102a, #050510 75%);
+  transition: transform 0.2s ease;
+}
+
+.project-card__poster:hover .project-card__poster-visual,
+.project-card__poster:focus-visible .project-card__poster-visual {
+  transform: scale(1.04);
+}
+
+/* project-modal.ts clones this element to drive the FLIP transition into
+   the mission-briefing dialog, fully via inline `transform`/`transition`
+   assigned from JS. Without this override, the clone would inherit the
+   hover-zoom transition above — any transform it sets would auto-animate
+   over that CSS-defined 0.2s instead of jumping instantly, corrupting the
+   FLIP's own two-phase invert/release timing. */
+.project-card__poster-visual.project-card__poster-visual--clone {
+  transition: none;
+}
+
+.project-card__icon svg {
+  display: block;
 }
 
 .project-card__badge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
   font-family: var(--font-pixel);
   font-size: 9px;
   color: var(--accent-amber);
 }
 
-.project-card__shot {
-  aspect-ratio: 16 / 9;
-  border: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  font-family: var(--font-pixel);
-  font-size: 9px;
+.project-card__poster-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5, 5, 16, 0.92), rgba(5, 5, 16, 0.15) 60%, transparent);
 }
 
-.project-card__title {
+.project-card__poster-text {
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
+  transform: translateY(4px);
+  transition: transform 0.2s ease;
+}
+
+.project-card__poster:hover .project-card__poster-text,
+.project-card__poster:focus-visible .project-card__poster-text {
+  transform: translateY(0);
+}
+
+.project-card__kicker {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--poster-accent, var(--accent-teal));
+  margin-bottom: 4px;
+}
+
+.project-card__title-overlay {
+  display: block;
   font-family: var(--font-pixel);
   font-size: 14px;
   color: var(--color-text);
 }
 
+.project-card__body {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1 1 auto;
+}
+
 .project-card__blurb {
   color: var(--color-text-secondary);
   margin: 0;
-}
-
-.project-card__detail {
-  margin: 0;
-  font-size: 15px;
 }
 
 .project-card__tags {

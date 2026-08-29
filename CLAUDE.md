@@ -28,7 +28,7 @@ There's no committed test script. The pattern used throughout this project's his
 
 These are established project rules, not suggestions:
 - **Vanilla TS + Vite only** — no frameworks, no animation/UI libraries, no new npm dependencies without explicit user approval.
-- **Animate via `transform`/`opacity` only** (or native CSS like `scroll-behavior: smooth`) — never animate layout properties.
+- **Animate via `transform`/`opacity` only** (or native CSS like `scroll-behavior: smooth`) — never animate layout properties. The project-card "MISSION BRIEF" dialog (`src/project-modal.ts`) is a good example of staying inside this rule for something that looks like a layout animation: it's a hand-rolled FLIP transition (invert via `transform`, then release under a CSS transition) computed from `getBoundingClientRect()` deltas, not an animated width/height.
 - **Respect `prefers-reduced-motion` everywhere** — every scroll/animation module must early-return or degrade under it. Two layers of enforcement exist: a global CSS kill in `src/styles/base.css` (`animation-duration`/`transition-duration` forced to ~0) and per-module JS guards (`if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;`) at the top of each `init*()` function. New scroll-effect modules must add both.
 - **Zero horizontal overflow at any viewport.** Known trap: a CSS Grid/flex *item* that contains a horizontally-scrolling child (like `.skill-scroll`) needs `min-width: 0` on the grid item itself — grid/flex items default to `min-width: auto`, which lets the scrollable child's full unscrolled width push the whole page wider. Verify with the real `devices['iPhone 12']` Playwright preset, not a synthetic narrow viewport.
 - **WCAG AA / keyboard accessibility** — visible focus outlines (`:focus-visible`), ≥44×44px touch targets, skip link, `aria-live` status regions for async UI (contact form).
@@ -59,8 +59,22 @@ If you touch scroll behavior, be aware all of these run concurrently off the sam
 ### The mini-game
 `src/game/index.ts` (`mountGame`) is a self-contained Canvas game (single wave, score-attack, no lose condition) and is **code-split** — dynamically `import()`-ed from `main.ts` only when INSERT COIN is actually triggered (space bar or tap), so it never adds to the initial JS payload. If you modify it, preserve the dynamic import in `main.ts`'s `launch()` — don't hoist it to a static import.
 
+### Social preview image
+
+`public/og-image.png` (1200×630) is a generated asset, not hand-placed:
+it was produced by a throwaway Node script that writes a raw RGBA buffer
+through `zlib.deflateSync` into hand-assembled PNG chunks, using an
+original 5×7 bitmap font — no image library, consistent with the
+zero-dependency rule. To change it, rewrite that script rather than
+editing the PNG. The `og:*`/`twitter:*` tags in `index.html` carry an
+absolute placeholder origin that **must** be replaced with the real
+deployed URL, or link previews will not render.
+
 ### Pixel art
-`src/pixel-icons.ts` renders all icons (ship, enemy glyphs, skill glyphs) from ASCII grids (`X` = filled pixel) into inline SVG via `gridToSvg()`. To add a new skill icon, add an entry to `SKILL_GRIDS` keyed by the *exact* item string used in `content.ts`'s `skillGroups`; unmatched items fall back to a generic square glyph (`FALLBACK_GRID`) rather than erroring.
+`src/pixel-icons.ts` renders all icons (ship, enemy glyphs, skill glyphs) from ASCII grids (`X` = filled pixel) into inline SVG via `gridToSvg()`. `avatarSvg()` renders the About-section portrait — a hand-authored pixel likeness of Samir, drawn from a reference photo the way an artist works from one. It uses `shadeGridToSvg()`, a multi-tone sibling of `gridToSvg()` where each grid character keys into `PORTRAIT_PALETTE` ("." is transparent), because a portrait needs more than one colour. Note a straight luminance downsample of the source photo was tried first and rejected: at 32×32 the cast shadow in the photo is the same luminance as the hair, so no threshold separates them and the result is mush. Every row must be exactly 32 characters. The About section shows this, not a photo, by design. To add a new skill icon, add an entry to `SKILL_GRIDS` keyed by the *exact* item string used in `content.ts`'s `skillGroups`; unmatched items fall back to a generic square glyph (`FALLBACK_GRID`) rather than erroring.
+
+### Project "mission briefing" dialog
+`src/project-modal.ts` (`initProjectModal`) expands a clicked project poster (`.project-card__poster` in `renderProjects()`, `main.ts`) into a full dialog with a hand-rolled FLIP shared-element transition — see the note under "Animate via transform/opacity only" above. It shares a single `#project-modal-root` in `index.html`, rebuilt fresh on each open (same pattern as `#game-root`/`mountGame`). Focus is trapped inside the dialog and restored to the trigger button on close (Escape, backdrop click, or the close button).
 
 ## Editing content vs. editing behavior
 

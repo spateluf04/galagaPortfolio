@@ -1,0 +1,158 @@
+/* Mission-briefing dialog opened by src/project-modal.ts. The FLIP
+   transition itself is driven entirely from JS (transform/opacity only,
+   per CLAUDE.md); this file only supplies the at-rest layout the clone
+   and content animate into/out of. */
+
+body.project-modal-open {
+  overflow: hidden;
+}
+
+#project-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+#project-modal-root[hidden] {
+  display: none;
+}
+
+.project-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 5, 16, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.project-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(960px, 100%);
+  max-height: min(640px, 85vh);
+  display: flex;
+  flex-direction: row;
+  background: var(--color-bg);
+  border: 2px solid var(--poster-accent, var(--accent-amber));
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .project-modal__dialog {
+    flex-direction: column;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+.project-modal__close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-pink);
+  background: rgba(5, 5, 16, 0.6);
+  color: var(--accent-pink);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.project-modal__close:hover,
+.project-modal__close:focus-visible {
+  background: rgba(237, 147, 177, 0.16);
+}
+
+.project-modal__visual {
+  position: relative;
+  flex: 0 0 42%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .project-modal__visual {
+    flex: 0 0 200px;
+  }
+}
+
+/* The cloned .project-card__poster-visual is position:absolute + inset:0
+   already, so it fills this slot without any extra sizing rules here. */
+
+.project-modal__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.project-modal__kicker {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--poster-accent, var(--accent-teal));
+  margin: 0;
+}
+
+.project-modal__title {
+  font-family: var(--font-pixel);
+  font-size: clamp(16px, 3vw, 22px);
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.project-modal__detail {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.project-modal__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.project-modal__tags li {
+  border: 1px solid var(--accent-teal);
+  color: var(--accent-teal);
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.project-modal__links {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.project-modal__links a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--accent-pink);
+  color: var(--accent-pink);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.project-modal__links a:hover,
+.project-modal__links a:focus-visible {
+  background: rgba(237, 147, 177, 0.12);
+}

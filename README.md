@@ -21,11 +21,14 @@ render from it automatically. Things you'll likely want to fill in:
 
 - `profile.links.linkedin` — currently empty, hides the LinkedIn button
   in Contact until set.
-- `profile.links.resume` — points at `/resume.pdf`. Drop your résumé at
-  `public/resume.pdf` and the existing download buttons (hero footer +
-  Contact section) will work as-is.
-- Each `projects[].github` — several are empty placeholders; the card
-  renders a disabled-looking link until filled in.
+- `profile.links.resume` — points at `./resume.pdf` (relative on
+  purpose, so it resolves under a GitHub Pages project subpath too — do
+  not change it back to a leading-slash absolute path). **Drop your
+  résumé at `public/resume.pdf`; until you do, the DOWNLOAD RESUME
+  button 404s.**
+- Each `projects[].github` — all four are filled in. If you ever blank
+  one, the card falls back to a disabled-looking link rather than
+  erroring; that fallback is intentional.
 - `profile.taglines[]` — three alternatives are included; `activeTagline`
   picks which one renders.
 - `skillGroups` — Languages/Frameworks/Tools render as a horizontally
@@ -37,7 +40,12 @@ render from it automatically. Things you'll likely want to fill in:
 
 ## Deployment
 
-`.github/workflows/deploy.yml` builds and deploys `dist/` to GitHub
+**Netlify is the primary target** — `netlify.toml` sets the build
+command and publish directory, and the contact form only works here
+(see below). Import the repo at app.netlify.com; no other config
+needed.
+
+`.github/workflows/deploy.yml` also builds and deploys `dist/` to GitHub
 Pages on every push to `main` (or manually via workflow_dispatch). To
 enable it: repo **Settings → Pages → Source → GitHub Actions**. No
 repo-name-specific config is needed — `vite.config.ts` uses a relative

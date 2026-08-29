@@ -1,0 +1,18 @@
+# Netlify deploy config. The contact form in index.html uses Netlify Forms
+# (data-netlify="true"), which is auto-provisioned by Netlify's build bot —
+# it only works on this host, so keep the site deployed here.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# NO catch-all redirect on purpose. This is a single page whose only in-page
+# navigation is hash links, which never reach the server, so a SPA rewrite buys
+# nothing — and it actively breaks the contact form fallback: a "/* /index.html
+# 200" rewrite answers ANY unhandled POST with 200, so if Netlify ever fails to
+# detect the form, initContactForm() in src/main.ts sees res.ok and reports
+# "message received" for a submission that was never recorded. Leaving it off
+# means an undetected form POST returns an error status and the code correctly
+# falls back to showing the email address.

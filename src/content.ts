@@ -9,14 +9,14 @@ export const profile = {
     { label: "SCHOOL", value: "University of Florida" },
     { label: "YEAR", value: "Junior" },
     { label: "FOCUS", value: "Full-stack + systems" },
-    { label: "BUILDING", value: "RoomScan, The Pause Protocol" },
+    { label: "BUILDING", value: "CleanVision, The Pause Protocol" },
     { label: "THIS SITE", value: "Hand-built, vanilla TS + Canvas — no game libraries, including the mini-game (try PRESS SPACE up top)" },
   ],
   links: {
     github: "https://github.com/spateluf04",
-    linkedin: "", // PLACEHOLDER — add LinkedIn URL
+    linkedin: "https://www.linkedin.com/in/samir-patel-3909a2335/",
     email: "sampatel0803@gmail.com",
-    resume: "/resume.pdf",
+    resume: "./resume.pdf",
   },
 } as const;
 
@@ -33,12 +33,12 @@ export interface Project {
 export const projects: Project[] = [
   {
     stage: "STAGE 01",
-    title: "RoomScan",
+    title: "CleanVision",
     blurb: "Energy-waste scanner built on smart glasses.",
     detail:
       "Built on Meta Project Aria Gen 1 smart glasses to identify appliances and estimate energy costs on a live dashboard. Handles offline VRS sensor-data processing in WSL2. Placed 3rd at a UCF hackathon.",
     tech: ["Python 3.12", "projectaria_tools", "WSL2"],
-    github: "", // PLACEHOLDER — add repo URL
+    github: "https://github.com/spateluf04/CleanVision",
     demo: undefined,
   },
   {
@@ -58,7 +58,7 @@ export const projects: Project[] = [
     detail:
       "A clinical dashboard built on a 'two-brain' architecture: a deterministic rules engine (max dose, duplicate therapy, MME, age checks) makes every safety decision, while Claude sits in an advisory layer — translating pharmacists' plain-English protocols into structured rules and explaining flags in plain language, but never making the clinical call itself. A strict de-identification boundary ensures only tokenized, non-PHI data ever reaches the AI layer, keeping it HIPAA-manageable and outside FDA medical-device regulation.",
     tech: ["FastAPI", "Python", "React", "TypeScript", "Claude API"],
-    github: "", // PLACEHOLDER — add repo URL
+    github: "https://github.com/spateluf04/PharmacyDash",
     demo: undefined,
   },
   {

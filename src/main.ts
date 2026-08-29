@@ -2,13 +2,15 @@ import "./styles/base.css";
 import "./styles/hud.css";
 import "./styles/sections.css";
 import "./styles/flight.css";
+import "./styles/project-modal.css";
 import { profile, projects, skillGroups, nav } from "./content";
 import { initStarfield } from "./starfield";
 import { initHud } from "./hud";
-import { enemyIconSvg, skillIconSvg } from "./pixel-icons";
+import { avatarSvg, enemyIconSvg, skillIconSvg } from "./pixel-icons";
 import { initScrollFx } from "./scrollfx";
 import { initFlight } from "./flight";
 import { scrambleIn } from "./scramble";
+import { initProjectModal } from "./project-modal";
 
 function $<T extends HTMLElement>(selector: string): T {
   const el = document.querySelector<T>(selector);
@@ -32,6 +34,7 @@ function renderFormation() {
 
 function renderAbout() {
   $("#about-bio").textContent = profile.bio;
+  $("#about-avatar").innerHTML = avatarSvg();
   const factsList = $("#quick-facts");
   factsList.innerHTML = profile.quickFacts
     .map(
@@ -40,6 +43,10 @@ function renderAbout() {
     )
     .join("");
 }
+
+// Cycled per card so the four posters read as distinct "stage" colors
+// rather than one repeated accent.
+const POSTER_ACCENTS = ["var(--accent-amber)", "var(--accent-pink)", "var(--accent-teal)"];
 
 function renderProjects() {
   const grid = $("#projects-grid");
@@ -51,22 +58,37 @@ function renderProjects() {
       const demoLink = project.demo
         ? `<a href="${project.demo}" target="_blank" rel="noreferrer">LIVE DEMO</a>`
         : "";
+      const accent = POSTER_ACCENTS[index % POSTER_ACCENTS.length];
+      const kicker = project.tech[0]?.toUpperCase() ?? project.stage;
       return `
         <li class="project-card bracketed">
-          <div class="project-card__header">
-            <span class="project-card__badge">${project.stage}</span>
-            ${enemyIconSvg(index, "#ed93b1")}
-          </div>
-          <div class="project-card__shot" role="img" aria-label="Screenshot placeholder for ${project.title}">SCREENSHOT</div>
-          <h3 class="project-card__title">${project.title}</h3>
-          <p class="project-card__blurb">${project.blurb}</p>
-          <p class="project-card__detail">${project.detail}</p>
-          <ul class="project-card__tags">
-            ${project.tech.map((tech) => `<li>${tech}</li>`).join("")}
-          </ul>
-          <div class="project-card__links">
-            ${githubLink}
-            ${demoLink}
+          <button
+            type="button"
+            class="project-card__poster"
+            data-project-index="${index}"
+            style="--poster-accent: ${accent}"
+            aria-haspopup="dialog"
+            aria-label="View mission briefing: ${project.title}"
+          >
+            <span class="project-card__poster-visual" aria-hidden="true">
+              <span class="project-card__badge">${project.stage}</span>
+              <span class="project-card__icon">${enemyIconSvg(index, accent, 44)}</span>
+            </span>
+            <span class="project-card__poster-scrim" aria-hidden="true"></span>
+            <span class="project-card__poster-text">
+              <span class="project-card__kicker">${kicker}</span>
+              <span class="project-card__title-overlay" role="heading" aria-level="3">${project.title}</span>
+            </span>
+          </button>
+          <div class="project-card__body">
+            <p class="project-card__blurb">${project.blurb}</p>
+            <ul class="project-card__tags">
+              ${project.tech.map((tech) => `<li>${tech}</li>`).join("")}
+            </ul>
+            <div class="project-card__links">
+              ${githubLink}
+              ${demoLink}
+            </div>
           </div>
         </li>
       `;
@@ -187,10 +209,14 @@ function initInsertCoin() {
 
   btn.addEventListener("click", launch);
   document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && $("#game-root").hidden) {
-      e.preventDefault();
-      launch();
-    }
+    if (e.code !== "Space" || !$("#game-root").hidden) return;
+    // Don't steal Space from a focused control that handles it natively
+    // (e.g. the project-card MISSION BRIEF toggle) — only treat it as the
+    // global "press space to play" shortcut when nothing else claims it.
+    const target = e.target as HTMLElement;
+    if (target.closest("button, a, input, textarea, select, [contenteditable]")) return;
+    e.preventDefault();
+    launch();
   });
 }
 
@@ -211,6 +237,7 @@ function init() {
   initHud($("#hud-score"), $("#hud-stage"));
   initScrollFx();
   initFlight();
+  initProjectModal();
 }
 
 init();
