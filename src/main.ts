@@ -178,7 +178,13 @@ function initContactForm() {
       } else {
         throw new Error(`Form endpoint returned ${res.status}`);
       }
-    } catch {
+    } catch (err) {
+      // Keep the visitor-facing copy friendly, but never swallow the cause:
+      // a silently-caught 404 here is indistinguishable from a network drop,
+      // which makes a misconfigured Netlify form impossible to diagnose from
+      // a bug report. The most common cause is form detection being off for
+      // the site, so the POST hits a page that was never registered.
+      console.warn("[contact] submission failed — form not delivered:", err);
       status.classList.add("contact-form__status--error");
       status.textContent = `Couldn't send that automatically — email me directly at ${profile.links.email} instead.`;
     } finally {
